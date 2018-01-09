@@ -11,3 +11,6 @@ javadoc
 .settings/
 .idea/
 *.iml
+
+/build
+.gradle
