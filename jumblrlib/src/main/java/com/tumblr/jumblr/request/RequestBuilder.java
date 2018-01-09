@@ -211,4 +211,8 @@ public class RequestBuilder {
         this.hostname = host;
     }
 
+    public String getUrlPrefix(){
+        return "https://" + hostname + "/v2";
+    }
+
 }
