@@ -51,6 +51,7 @@ public class Post extends Resource {
   private Boolean bookmarklet, mobile;
   private String source_url;
   private String source_title;
+  private Boolean followed;
   private Boolean liked;
   private String slug;
   private Long reblogged_from_id, reblogged_root_id;
@@ -75,6 +76,15 @@ public class Post extends Resource {
    */
   public Boolean isLiked() {
     return liked;
+  }
+
+  /**
+   * Get whether or not this blog is follwed
+   *
+   * @return boolean
+   */
+  public Boolean isFollowed() {
+    return followed;
   }
 
   /**
