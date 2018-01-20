@@ -1,12 +1,23 @@
 apply plugin: rootProject.ext.plugins.javalibrary
 
+//android {
+//  compileSdkVersion rootProject.ext.android.compileSdkVersion
+//  buildToolsVersion rootProject.ext.android.buildToolsVersion
+//
+//  defaultConfig {
+//    minSdkVersion rootProject.ext.android.libraryMinSdkVersion
+//    targetSdkVersion rootProject.ext.android.libraryTargetSdkVersion
+//  }
+//}
 dependencies {
-  implementation fileTree(dir: 'libs', include: ['*.jar'])
   testImplementation rootProject.ext.testDependencies.junit
   testImplementation rootProject.ext.testDependencies.mockito
+  testImplementation 'org.powermock:powermock-module-junit4-legacy:1.7.3'
+  testImplementation 'org.powermock:powermock-api-mockito:1.7.3'
   implementation rootProject.ext.dependencies.scribecore
   //  implementation rootProject.ext.dependencies.scribeapis
   implementation rootProject.ext.dependencies.apachecomlang3
   implementation rootProject.ext.dependencies.gson
+  implementation fileTree(include: ['*.jar'], dir: 'libs')
 }
 

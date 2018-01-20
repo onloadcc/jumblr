@@ -1,21 +1,28 @@
 package com.tumblr.jumblr.request;
 
+import com.github.scribejava.core.model.OAuth1AccessToken;
 import com.github.scribejava.core.model.OAuthRequest;
 import com.github.scribejava.core.model.Response;
-import com.github.scribejava.core.model.Token;
 import com.tumblr.jumblr.JumblrClient;
 import com.tumblr.jumblr.exceptions.JumblrException;
 import com.tumblr.jumblr.responses.ResponseWrapper;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.junit.runner.RunWith;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.legacy.PowerMockRunner;
 
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(Response.class)
 public class RequestBuilderTest {
 
   private RequestBuilder rb;
@@ -26,7 +33,7 @@ public class RequestBuilderTest {
     rb = new RequestBuilder(null);
   }
 
-  @Test public void testClearEmptyJson() {
+  @Test public void testClearEmptyJson() throws IOException {
     Response r = mock(Response.class);
     when(r.getCode()).thenReturn(200);
     when(r.getBody()).thenReturn("");
@@ -46,7 +53,7 @@ public class RequestBuilderTest {
     assertEquals(request.getQueryStringParams().asFormUrlEncodedString(), "limit=1");
   }
 
-  @Test public void testXauthForbidden() {
+  @Test public void testXauthForbidden() throws IOException {
     Response r = mock(Response.class);
     when(r.getCode()).thenReturn(403);
     when(r.getBody()).thenReturn("");
@@ -55,28 +62,28 @@ public class RequestBuilderTest {
     rb.clearXAuth(r);
   }
 
-  @Test public void testXauthSuccess() {
+  @Test public void testXauthSuccess() throws IOException {
     Response r = mock(Response.class);
     when(r.getCode()).thenReturn(200);
     when(r.getBody()).thenReturn("oauth_token=valueForToken&oauth_token_secret=valueForSecret");
 
-    Token token = rb.clearXAuth(r);
+    OAuth1AccessToken token = rb.clearXAuth(r);
     assertEquals(token.getToken(), "valueForToken");
-    assertEquals(token.getSecret(), "valueForSecret");
+    assertEquals(token.getTokenSecret(), "valueForSecret");
   }
 
-  @Test public void testXauthSuccessWithExtra() {
+  @Test public void testXauthSuccessWithExtra() throws IOException {
     Response r = mock(Response.class);
     when(r.getCode()).thenReturn(201);
     when(r.getBody()).thenReturn(
         "oauth_token=valueForToken&oauth_token_secret=valueForSecret&other=paramisokay");
 
-    Token token = rb.clearXAuth(r);
+    OAuth1AccessToken token = rb.clearXAuth(r);
     assertEquals(token.getToken(), "valueForToken");
-    assertEquals(token.getSecret(), "valueForSecret");
+    assertEquals(token.getTokenSecret(), "valueForSecret");
   }
 
-  @Test public void testXauthBadResponseGoodCode() {
+  @Test public void testXauthBadResponseGoodCode() throws IOException {
     Response r = mock(Response.class);
     when(r.getCode()).thenReturn(200);
     when(r.getBody()).thenReturn("");

@@ -3,6 +3,7 @@
 buildscript {
   repositories {
     google()
+    jcenter()
   }
   dependencies {
     classpath 'com.android.tools.build:gradle:3.0.1'
@@ -31,6 +32,22 @@ ext {
       library    : 'com.android.library',
       application: 'com.android.application',
       javalibrary: 'java',
+
+  ]
+
+  android = [
+
+      compileSdkVersion      : 27,
+      buildToolsVersion      : "27.0.2",
+
+      minSdkVersion          : 19,
+      targetSdkVersion       : 27,
+
+      libraryMinSdkVersion   : 14,
+      libraryTargetSdkVersion: 22,
+
+      versionCode            : 1,
+      versionName            : "1.0.0",
 
   ]
 
