@@ -1,10 +1,15 @@
 package com.tumblr.jumblr.exceptions;
 
-import com.google.gson.*;
+import com.github.scribejava.core.model.Response;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonPrimitive;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-
-import org.scribe.model.Response;
 
 /**
  * This exception class is for any connection issue, it attempts to pull
@@ -15,7 +20,7 @@ import org.scribe.model.Response;
 public class JumblrException extends RuntimeException {
   private static final long serialVersionUID = 1L;
 
-  private final int responseCode;
+  private int responseCode;
   private String message;
   private List<String> errors;
 
@@ -26,10 +31,10 @@ public class JumblrException extends RuntimeException {
    */
   public JumblrException(Response response) {
     this.responseCode = response.getCode();
-    String body = response.getBody();
 
     JsonParser parser = new JsonParser();
     try {
+      String body = response.getBody();
       final JsonElement element = parser.parse(body);
       if (element.isJsonObject()) {
         JsonObject object = element.getAsJsonObject();
@@ -38,9 +43,14 @@ public class JumblrException extends RuntimeException {
       } else {
         this.message = body;
       }
-    } catch (JsonParseException ex) {
-      this.message = body;
+    } catch (JsonParseException | IOException ex) {
+      this.message = ex.getMessage();
     }
+  }
+
+  public JumblrException(Exception exception) {
+    responseCode = 405;
+    message = exception.getMessage();
   }
 
   /**

@@ -1,10 +1,17 @@
 package com.tumblr.jumblr.request;
 
+import com.github.scribejava.core.builder.ServiceBuilder;
+import com.github.scribejava.core.model.OAuth1AccessToken;
+import com.github.scribejava.core.model.OAuthRequest;
+import com.github.scribejava.core.model.Response;
+import com.github.scribejava.core.model.Verb;
+import com.github.scribejava.core.oauth.OAuth10aService;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonSyntaxException;
 import com.tumblr.jumblr.JumblrClient;
+import com.tumblr.jumblr.TumblrApi;
 import com.tumblr.jumblr.exceptions.JumblrException;
 import com.tumblr.jumblr.responses.JsonElementDeserializer;
 import com.tumblr.jumblr.responses.ResponseWrapper;
@@ -12,13 +19,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.util.Map;
-import org.scribe.builder.ServiceBuilder;
-import org.scribe.builder.api.TumblrApi;
-import org.scribe.model.OAuthRequest;
-import org.scribe.model.Response;
-import org.scribe.model.Token;
-import org.scribe.model.Verb;
-import org.scribe.oauth.OAuthService;
+import java.util.concurrent.ExecutionException;
 
 /**
  * Where requests are made from
@@ -27,8 +28,8 @@ import org.scribe.oauth.OAuthService;
  */
 public class RequestBuilder {
 
-  private Token token;
-  private OAuthService service;
+  private OAuth1AccessToken token;
+  private OAuth10aService service;
   private String hostname = "api.tumblr.com";
   private String xauthEndpoint = "https://www.tumblr.com/oauth/access_token";
   private String version = "0.0.11";
@@ -43,7 +44,7 @@ public class RequestBuilder {
     sign(request);
     boolean presetVal = HttpURLConnection.getFollowRedirects();
     HttpURLConnection.setFollowRedirects(false);
-    Response response = request.send();
+    Response response = execute(request);
     HttpURLConnection.setFollowRedirects(presetVal);
     if (response.getCode() == 301 || response.getCode() == 302) {
       return response.getHeader("Location");
@@ -56,13 +57,13 @@ public class RequestBuilder {
     OAuthRequest request = this.constructPost(path, bodyMap);
     sign(request);
     OAuthRequest newRequest = RequestBuilder.convertToMultipart(request, bodyMap);
-    return clear(newRequest.send());
+    return clear(execute(newRequest));
   }
 
   public ResponseWrapper post(String path, Map<String, ?> bodyMap) {
     OAuthRequest request = this.constructPost(path, bodyMap);
     sign(request);
-    return clear(request.send());
+    return clear(execute(request));
   }
 
   /**
@@ -73,11 +74,11 @@ public class RequestBuilder {
    * @param password the user's password.
    * @return the login token.
    */
-  public Token postXAuth(final String email, final String password) {
+  public OAuth1AccessToken postXAuth(final String email, final String password) {
     OAuthRequest request = constructXAuthPost(email, password);
     setToken("", ""); // Empty token is required for Scribe to execute XAuth.
     sign(request);
-    return clearXAuth(request.send());
+    return clearXAuth(execute(request));
   }
 
   // Construct an XAuth request
@@ -92,7 +93,15 @@ public class RequestBuilder {
   public ResponseWrapper get(String path, Map<String, ?> map) {
     OAuthRequest request = this.constructGet(path, map);
     sign(request);
-    return clear(request.send());
+    return clear(execute(request));
+  }
+
+  private Response execute(OAuthRequest request) {
+    try {
+      return service.execute(request);
+    } catch (InterruptedException | ExecutionException | IOException e) {
+      throw new JumblrException(e);
+    }
   }
 
   public OAuthRequest constructGet(String path, Map<String, ?> queryParams) {
@@ -126,24 +135,28 @@ public class RequestBuilder {
   }
 
   public void setConsumer(String consumerKey, String consumerSecret) {
-    service = new ServiceBuilder().
-        provider(TumblrApi.class).
-        apiKey(consumerKey).apiSecret(consumerSecret).
-        build();
+    service = new ServiceBuilder(consumerKey).apiSecret(consumerSecret)
+        //.callback("")
+        .build(TumblrApi.instance());
+    //service = new ServiceBuilder().
+    //    provider(TumblrApi.class).
+    //    apiKey(consumerKey).apiSecret(consumerSecret).
+    //    build();
   }
 
   public void setToken(String token, String tokenSecret) {
-    this.token = new Token(token, tokenSecret);
+    this.token = new OAuth1AccessToken(token, tokenSecret);
+    //this.token = new Token(token, tokenSecret);
   }
 
-  public void setToken(final Token token) {
+  public void setToken(final OAuth1AccessToken token) {
     this.token = token;
   }
 
   /* package-visible for testing */ ResponseWrapper clear(Response response) {
     if (response.getCode() == 200 || response.getCode() == 201) {
-      String json = response.getBody();
       try {
+        String json = response.getBody();
         Gson gson = new GsonBuilder().
             registerTypeAdapter(JsonElement.class, new JsonElementDeserializer()).
             create();
@@ -153,16 +166,21 @@ public class RequestBuilder {
         }
         wrapper.setClient(client);
         return wrapper;
-      } catch (JsonSyntaxException ex) {
-        throw new JumblrException(response);
+      } catch (JsonSyntaxException | IOException ex) {
+        throw new JumblrException(ex);
       }
     } else {
       throw new JumblrException(response);
     }
   }
 
-  private Token parseXAuthResponse(final Response response) {
-    String responseStr = response.getBody();
+  private OAuth1AccessToken parseXAuthResponse(final Response response) {
+    String responseStr = null;
+    try {
+      responseStr = response.getBody();
+    } catch (IOException e) {
+      throw new JumblrException(e);
+    }
     if (responseStr != null) {
       // Response is received in the format "oauth_token=value&oauth_token_secret=value".
       String extractedToken = null, extractedSecret = null;
@@ -178,14 +196,14 @@ public class RequestBuilder {
         }
       }
       if (extractedToken != null && extractedSecret != null) {
-        return new Token(extractedToken, extractedSecret);
+        return new OAuth1AccessToken(extractedToken, extractedSecret);
       }
     }
     // No good
     throw new JumblrException(response);
   }
 
-  /* package-visible for testing */ Token clearXAuth(Response response) {
+  /* package-visible for testing */ OAuth1AccessToken clearXAuth(Response response) {
     if (response.getCode() == 200 || response.getCode() == 201) {
       return parseXAuthResponse(response);
     } else {

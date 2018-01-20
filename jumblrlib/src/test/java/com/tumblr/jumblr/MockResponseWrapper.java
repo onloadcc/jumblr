@@ -1,12 +1,11 @@
 package com.tumblr.jumblr;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.tumblr.jumblr.responses.ResponseWrapper;
 import com.tumblr.jumblr.types.Blog;
 import com.tumblr.jumblr.types.Post;
 import com.tumblr.jumblr.types.User;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author jc

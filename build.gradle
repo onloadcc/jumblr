@@ -2,10 +2,10 @@
 
 buildscript {
   repositories {
-    jcenter()
+    google()
   }
   dependencies {
-    classpath 'com.android.tools.build:gradle:2.3.3'
+    classpath 'com.android.tools.build:gradle:3.0.1'
 
     // NOTE: Do not place your application dependencies here; they belong
     // in the individual module build.gradle files
@@ -16,13 +16,45 @@ allprojects {
   repositories {
     jcenter()
     mavenCentral()
-    maven {                                  // <-- Add this
-      url 'https://maven.google.com/'
-      name 'Google'
-    }
+    google()
   }
 }
 
 task clean(type: Delete) {
   delete rootProject.buildDir
+}
+
+ext {
+
+  plugins = [
+
+      library    : 'com.android.library',
+      application: 'com.android.application',
+      javalibrary: 'java',
+
+  ]
+
+  dependencies = [
+
+      //gson
+      gson          : 'com.google.code.gson:gson:2.8.2',
+
+      //apache
+      apachecomlang3: 'org.apache.commons:commons-lang3:3.7',
+
+      //scribe　5.1.0需要java8支持。androidstudio3.0默认java8最低到26.并且编译不通过
+      scribecore    : 'com.github.scribejava:scribejava-core:4.2.0',
+//      scribeapis    : 'com.github.scribejava:scribejava-apis:5.1.0',
+
+  ]
+
+  testDependencies = [
+
+      //junit
+      junit  : 'junit:junit:4.12',
+
+      //mockito
+      mockito: 'org.mockito:mockito-all:1.9.5',
+
+  ]
 }

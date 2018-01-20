@@ -1,13 +1,13 @@
 package com.tumblr.jumblr.request;
 
+import com.github.scribejava.core.model.OAuthRequest;
+import com.github.scribejava.core.model.Response;
+import com.github.scribejava.core.model.Token;
 import com.tumblr.jumblr.JumblrClient;
 import com.tumblr.jumblr.exceptions.JumblrException;
 import com.tumblr.jumblr.responses.ResponseWrapper;
 import java.util.HashMap;
 import java.util.Map;
-
-import static org.junit.Assert.*;
-
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -15,10 +15,6 @@ import org.junit.rules.ExpectedException;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-
-import org.scribe.model.OAuthRequest;
-import org.scribe.model.Response;
-import org.scribe.model.Token;
 
 public class RequestBuilderTest {
 

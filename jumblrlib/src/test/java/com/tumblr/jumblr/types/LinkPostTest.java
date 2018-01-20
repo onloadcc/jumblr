@@ -5,11 +5,10 @@ import com.google.gson.GsonBuilder;
 import com.tumblr.jumblr.responses.PostDeserializer;
 import java.util.HashMap;
 import java.util.Map;
-
-import static org.junit.Assert.*;
-
 import org.junit.Before;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * Tests for Link Post
