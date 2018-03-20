@@ -1,7 +1,6 @@
 package com.tumblr.jumblr;
 
 import com.github.scribejava.core.builder.api.DefaultApi10a;
-import com.github.scribejava.core.model.OAuth1RequestToken;
 
 public class TumblrApi extends DefaultApi10a {
 
@@ -25,13 +24,17 @@ public class TumblrApi extends DefaultApi10a {
         return ACCESS_TOKEN_RESOURCE;
     }
 
+    @Override protected String getAuthorizationBaseUrl() {
+        return AUTHORIZE_URL;
+    }
+
     @Override
     public String getRequestTokenEndpoint() {
         return REQUEST_TOKEN_RESOURCE;
     }
 
-    @Override
+    /*@Override
     public String getAuthorizationUrl(OAuth1RequestToken requestToken) {
         return String.format(AUTHORIZE_URL, requestToken.getToken());
-    }
+    }*/
 }
